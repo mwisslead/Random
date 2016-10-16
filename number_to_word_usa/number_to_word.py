@@ -83,7 +83,7 @@ def under_1000(num):
     s = str(num)
     n1 = int(s[0])
     n2 = int(s[1:])
-    return (NUMWORDS[n1] + ' hundred ' if n1 else '') + under_100(n2)
+    return (NUMWORDS[n1] + ' hundred' if n1 else '') + ((' ' + under_100(n2)) if n2 else '')
     
 def main():
     print(split_num(int(sys.argv[1])))
