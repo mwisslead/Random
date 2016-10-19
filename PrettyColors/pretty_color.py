@@ -23,18 +23,17 @@ def lrgb2srgb(lrgb):
     func = lambda lval: (12.92*lval) if lval < 0.0031308 else (1+0.055)*(lval**(1/2.4)) - 0.055
     return np.vectorize(func)(lrgb)
 
-def hsv_stretch(angle):
-    '''modify the hsv angle so that each "color" inhabits an equal amount of space'''
-    angles = np.arange(0, 360, 30)
-    mapped = [0, 8, 27, 51, 74, 109, 136, 226, 250, 270, 300, 336]
-    angle = np.interp(angle, angles, mapped)
-    return angle
+def hue_stretch(hue):
+    '''stretch different regions of the hue so that each "color" is equally likely'''
+    hues = np.linspace(-22.5, 382.5, 10)
+    mapped = np.array([-13, 8, 27, 81, 134, 230, 243, 255, 347, 368])
+    return np.interp(hue, hues, mapped)
 
-def pretty_color(integer):
+def pretty_color(integer, saturation=0.9, value=0.9):
     '''create a nice looking color'''
-    angle = (integer * GOLDEN_ANGLE) % 360
-    angle = hsv_stretch(angle)
-    hsv = np.float32([[[angle, 0.95, 0.95]]])
+    hue = (integer * GOLDEN_ANGLE) % 360
+    hue = hue_stretch(hue)
+    hsv = np.float32([[[hue, saturation, value]]])
     return lrgb2srgb(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
 
 def main(args=None):
@@ -42,14 +41,11 @@ def main(args=None):
     if args is None:
         args = parse_args()
 
-    img = np.zeros((4, 6, 3))
+    colors = 25
+    factor = next(i for i in range(int(math.sqrt(colors)), 0, -1) if colors % i is 0)
+    img = np.reshape([pretty_color(i) for i in range(colors)], (factor, colors//factor, 3))
 
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            img[i, j, :] = pretty_color(img.shape[1]*i + j)
-
-    img = cv2.resize(img, None, fx=200., fy=200., interpolation=cv2.INTER_NEAREST)
-    plt.imshow(img)
+    plt.imshow(img, interpolation='none')
     plt.show()
 
 if __name__ == '__main__':
