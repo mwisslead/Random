@@ -23,9 +23,30 @@ FUNCS = {
     'sin': np.sin,
     'cos': np.cos,
     'tan': np.tan,
+    'arcsin': np.arcsin,
+    'arccos': np.arccos,
+    'arctan': np.arctan,
+    'degrees': np.degrees,
+    'radians': np.radians,
+    'sinh': np.sinh,
+    'cosh': np.cosh,
+    'tanh': np.tanh,
+    'arcsinh': np.arcsinh,
+    'arccosh': np.arccosh,
+    'arctanh': np.arctanh,
+    'round': np.round_,
+    'floor': np.floor,
+    'ceil': np.ceil,
+    'exp': np.exp,
+    'expm1': np.expm1,
+    'exp2': np.exp2,
     'log': np.log,
+    'log10': np.log10,
     'log2': np.log2,
-    'exp': np.exp
+    'log1p': np.log1p,
+    'sqrt': np.sqrt,
+    'abs': np.absolute,
+    'sign': np.sign
     }
 
 class ExprEvalVisitor(exprVisitor):
@@ -37,11 +58,14 @@ class ExprEvalVisitor(exprVisitor):
         return self.visit(ctx.expr())
 
     def visitMuldiv(self, ctx):
-
-        return self.visit(ctx.expr()[0]) * self.visit(ctx.expr()[1])
+        if ctx.MUL:
+            return self.visit(ctx.expr()[0]) * self.visit(ctx.expr()[1])
+        return self.visit(ctx.expr()[0]) / self.visit(ctx.expr()[1])
 
     def visitAddsub(self, ctx):
-        return self.visit(ctx.expr()[0]) + self.visit(ctx.expr()[1])
+        if ctx.ADD:
+            return self.visit(ctx.expr()[0]) + self.visit(ctx.expr()[1])
+        return self.visit(ctx.expr()[0]) - self.visit(ctx.expr()[1])
 
     def visitExpo(self, ctx):
         return self.visit(ctx.expr()[0]) ** self.visit(ctx.expr()[1])
@@ -79,21 +103,29 @@ class ExampleApp(QtGui.QMainWindow, design.Ui_MainWindow):
         self.canvas = FigureCanvas(self.figure)
         self.plothl.addWidget(self.canvas)
         self.actionStart.triggered.connect(self.OpenModal)
-        self.InputBox.setText('sin(2*pi*x)')
-        self.XMin.setText('0')
-        self.XMax.setText('1')
-        self.Points.setText('100')
+        self.InputBox.setText('sin(2*pi*x)/x')
+        self.XMin.setText('-5')
+        self.XMax.setText('5')
+        self.Points.setText('200')
         self.InputChanged()
 
     def InputChanged(self):
         self.axes.clear()
         try:
-            x = np.linspace(float(self.XMin.text()), float(self.XMax.text()), int(self.Points.text()))
+            mnx = float(self.XMin.text())
+            mxx = float(self.XMax.text())
+            if mnx == mxx:
+                mnx -= 0.5
+                mxx += 0.5
+            x = np.linspace(mnx, mxx, int(self.Points.text()))
             y = process_expr(self.InputBox.text(), x)
             self.axes.plot(x, y)
-            self.axes.set_xlim((min(x), max(x)))
-            self.axes.set_ylim((min(y), max(y)))
-        except (ValueError, NameError):
+            self.axes.set_xlim((mnx, mxx))
+            if min(y) == max(y):
+                self.axes.set_ylim((min(y)-0.5, max(y)+0.5))
+            else:
+                self.axes.set_ylim((min(y), max(y)))
+        except:
             pass
 
         self.canvas.draw()

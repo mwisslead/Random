@@ -2,8 +2,8 @@ grammar expr;
 
 expr
  : '(' expr ')' #sub
- | expr op=('/' | '*') expr #muldiv
- | expr op=('+' | '-') expr #addsub
+ | expr (MUL='*' | DIV='/') expr #muldiv
+ | expr (ADD='+' | MINUS='-') expr #addsub
  | expr '^' expr #expo
  | expr '%' expr #mod
  | '-' expr #negate

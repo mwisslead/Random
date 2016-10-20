@@ -34,7 +34,7 @@
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Input</string>
+         <string>Y = </string>
         </property>
        </widget>
       </item>
@@ -55,19 +55,12 @@
       <item>
        <widget class="QLabel" name="lb_min">
         <property name="text">
-         <string>Min</string>
+         <string>X Range</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QLineEdit" name="XMin"/>
-      </item>
-      <item>
-       <widget class="QLabel" name="lb_max">
-        <property name="text">
-         <string>Max</string>
-        </property>
-       </widget>
       </item>
       <item>
        <widget class="QLineEdit" name="XMax"/>

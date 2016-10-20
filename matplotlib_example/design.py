@@ -42,9 +42,6 @@ class Ui_MainWindow(object):
         self.XMin = QtWidgets.QLineEdit(self.centralwidget)
         self.XMin.setObjectName("XMin")
         self.horizontalLayout_3.addWidget(self.XMin)
-        self.lb_max = QtWidgets.QLabel(self.centralwidget)
-        self.lb_max.setObjectName("lb_max")
-        self.horizontalLayout_3.addWidget(self.lb_max)
         self.XMax = QtWidgets.QLineEdit(self.centralwidget)
         self.XMax.setObjectName("XMax")
         self.horizontalLayout_3.addWidget(self.XMax)
@@ -112,9 +109,8 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label.setText(_translate("MainWindow", "Input"))
-        self.lb_min.setText(_translate("MainWindow", "Min"))
-        self.lb_max.setText(_translate("MainWindow", "Max"))
+        self.label.setText(_translate("MainWindow", "Y = "))
+        self.lb_min.setText(_translate("MainWindow", "X Range"))
         self.lb_pts.setText(_translate("MainWindow", "Number of Points"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
