@@ -2,12 +2,12 @@ grammar expr;
 
 expr
  : '(' expr ')' #sub
+ | <assoc=right> expr '^' expr #expo
  | expr (MUL='*' | DIV='/') expr #muldiv
  | expr (ADD='+' | MINUS='-') expr #addsub
- | expr '^' expr #expo
  | expr '%' expr #mod
  | '-' expr #negate
- | funcname=ID '(' expr ')' #func
+ | funcname=ID '(' expr (',' expr)* ')' #func
  | NUM #num
  | ID #id
  ;

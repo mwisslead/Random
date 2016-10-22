@@ -26,6 +26,11 @@ FUNCS = {
     'arcsin': np.arcsin,
     'arccos': np.arccos,
     'arctan': np.arctan,
+    'arctan2': np.arctan2,
+    'asin': np.arcsin,
+    'acos': np.arccos,
+    'atan': np.arctan,
+    'atan2': np.arctan2,
     'degrees': np.degrees,
     'radians': np.radians,
     'sinh': np.sinh,
@@ -34,6 +39,9 @@ FUNCS = {
     'arcsinh': np.arcsinh,
     'arccosh': np.arccosh,
     'arctanh': np.arctanh,
+    'asinh': np.arcsinh,
+    'acosh': np.arccosh,
+    'atanh': np.arctanh,
     'round': np.round_,
     'floor': np.floor,
     'ceil': np.ceil,
@@ -46,7 +54,8 @@ FUNCS = {
     'log1p': np.log1p,
     'sqrt': np.sqrt,
     'abs': np.absolute,
-    'sign': np.sign
+    'sign': np.sign,
+    'cumsum': np.cumsum
     }
 
 class ExprEvalVisitor(exprVisitor):
@@ -80,7 +89,7 @@ class ExprEvalVisitor(exprVisitor):
         funcname = ctx.ID().getText()
         if funcname not in FUNCS:
             raise NameError('{} is not a valid function name'.format(repr(funcname)))
-        return FUNCS[funcname](self.visit(ctx.expr()))
+        return FUNCS[funcname](*[self.visit(expr) for expr in ctx.expr()])
 
     def visitNum(self, ctx):
         return float(ctx.NUM().getText())*np.ones_like(self.array)
@@ -98,12 +107,13 @@ class ExampleApp(QtGui.QMainWindow, design.Ui_MainWindow):
     def __init__(self):
         super(self.__class__, self).__init__()
         self.setupUi(self)
+        self.setWindowTitle('Matplotlib Graph Example')
         self.figure = Figure(figsize=(320,240), dpi=72, facecolor=(1,1,1), edgecolor=(0,0,0))
         self.axes = self.figure.add_subplot(111)
         self.canvas = FigureCanvas(self.figure)
         self.plothl.addWidget(self.canvas)
         self.actionStart.triggered.connect(self.OpenModal)
-        self.InputBox.setText('sin(2*pi*x)/x')
+        self.InputBox.setText('arctan2(x, sin(2*pi*x)/x)')
         self.XMin.setText('-5')
         self.XMax.setText('5')
         self.Points.setText('200')

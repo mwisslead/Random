@@ -20,6 +20,7 @@ class Ui_Dialog(object):
         self.pushButton.setObjectName("pushButton")
 
         self.retranslateUi(Dialog)
+        self.pushButton.clicked.connect(Dialog.accept)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
