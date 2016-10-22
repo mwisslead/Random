@@ -65,7 +65,7 @@ def split_num(num):
     n = int(math.floor(math.log10(absnum)))
     s = (2 - n % 3) * '0' + str(absnum)
     nums = (under_1000(int(s[i:i+3])) for i in range(0, len(s), 3))
-    n = (n - n % 3)/3
+    n = (n - n % 3)//3
 
     return ('negative ' if num < 0 else '') + ' '.join(number + ' ' + NUMBER_BREAKS[n-i] for i, number in enumerate(nums) if number).strip()
 
