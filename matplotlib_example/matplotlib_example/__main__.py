@@ -1,8 +1,8 @@
 import sys
 import math
 
-import design
-import testmodal
+import matplotlib_example.design as design
+import matplotlib_example.testmodal as testmodal
 
 import numpy as np
 
@@ -15,9 +15,9 @@ from matplotlib.figure import Figure
 
 import antlr4
 
-from exprLexer import exprLexer
-from exprParser import exprParser
-from exprVisitor import exprVisitor
+from matplotlib_example.exprLexer import exprLexer
+from matplotlib_example.exprParser import exprParser
+from matplotlib_example.exprVisitor import exprVisitor
 
 FUNCS = {
     'sin': np.sin,
