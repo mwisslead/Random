@@ -1,5 +1,6 @@
 import sys
 import math
+import traceback
 
 import matplotlib_example.design as design
 import matplotlib_example.testmodal as testmodal
@@ -59,49 +60,60 @@ FUNCS = {
     }
 
 class ExprEvalVisitor(exprVisitor):
-    def __init__(self, array):
+    def __init__(self):
         super(ExprEvalVisitor, self).__init__()
-        self.array = array
 
     def visitSub(self, ctx):
-        return self.visit(ctx.expr())
+        func = self.visit(ctx.expr())
+        return lambda x: func(x)
 
     def visitMuldiv(self, ctx):
+        func1 = self.visit(ctx.expr()[0])
+        func2 = self.visit(ctx.expr()[1])
         if ctx.MUL:
-            return self.visit(ctx.expr()[0]) * self.visit(ctx.expr()[1])
-        return self.visit(ctx.expr()[0]) / self.visit(ctx.expr()[1])
+            return lambda x: func1(x) * func2(x)
+        return lambda x: func1(x) / func2(x)
 
     def visitAddsub(self, ctx):
+        func1 = self.visit(ctx.expr()[0])
+        func2 = self.visit(ctx.expr()[1])
         if ctx.ADD:
-            return self.visit(ctx.expr()[0]) + self.visit(ctx.expr()[1])
-        return self.visit(ctx.expr()[0]) - self.visit(ctx.expr()[1])
+            return lambda x: func1(x) + func2(x)
+        return lambda x: func1(x) - func2(x)
 
     def visitExpo(self, ctx):
-        return self.visit(ctx.expr()[0]) ** self.visit(ctx.expr()[1])
+        func1 = self.visit(ctx.expr()[0])
+        func2 = self.visit(ctx.expr()[1])
+        return lambda x: func1(x) ** func2(x)
 
     def visitMod(self, ctx):
-        return self.visit(ctx.expr()[0]) % self.visit(ctx.expr()[1])
+        func1 = self.visit(ctx.expr()[0])
+        func2 = self.visit(ctx.expr()[1])
+        return lambda x: func1(x) % func2(x)
 
     def visitNegate(self, ctx):
-        return -self.visit(ctx.expr())
+        func = self.visit(ctx.expr())
+        return lambda x: -func(x)
 
     def visitFunc(self, ctx):
         funcname = ctx.ID().getText()
         if funcname not in FUNCS:
             raise NameError('{} is not a valid function name'.format(repr(funcname)))
-        return FUNCS[funcname](*[self.visit(expr) for expr in ctx.expr()])
+        args = [self.visit(expr) for expr in ctx.expr()]
+        return lambda x: FUNCS[funcname](*[f(x) for f in args])
 
     def visitNum(self, ctx):
-        return float(ctx.NUM().getText())*np.ones_like(self.array)
+        constant = float(ctx.NUM().getText())
+        return lambda x: constant
 
     def visitId(self, ctx):
         name = ctx.ID().getText()
         if name == 'x':
-            return self.array
+            return lambda x: x
         elif name == 'pi':
-            return np.ones_like(self.array)*math.pi
+            return lambda x: math.pi
         else:
-            raise ValueError('only variable allowed is \'x\'')
+            raise ValueError('only variable allowed is \'x\' or \'pi\'')
 
 class ExampleApp(QtGui.QMainWindow, design.Ui_MainWindow):
     def __init__(self):
@@ -120,25 +132,26 @@ class ExampleApp(QtGui.QMainWindow, design.Ui_MainWindow):
         self.InputChanged()
 
     def InputChanged(self):
-        self.axes.clear()
         try:
+            function = process_expr(self.InputBox.text())
             mnx = float(self.XMin.text())
             mxx = float(self.XMax.text())
             if mnx == mxx:
                 mnx -= 0.5
                 mxx += 0.5
             x = np.linspace(mnx, mxx, int(self.Points.text()))
-            y = process_expr(self.InputBox.text(), x)
+            y = function(x)
+            self.axes.clear()
             self.axes.plot(x, y)
             self.axes.set_xlim((mnx, mxx))
             if min(y) == max(y):
                 self.axes.set_ylim((min(y)-0.5, max(y)+0.5))
             else:
                 self.axes.set_ylim((min(y), max(y)))
+            self.canvas.draw()
         except:
-            pass
+            traceback.print_exc()
 
-        self.canvas.draw()
 
     def OpenModal(self):
         testDialog = QtGui.QDialog(self)
@@ -146,13 +159,13 @@ class ExampleApp(QtGui.QMainWindow, design.Ui_MainWindow):
         testUi.setupUi(testDialog)
         testDialog.show()
 
-def process_expr(data, array):
+def process_expr(data):
     input_stream = antlr4.InputStream(data)
     lexer = exprLexer(input_stream)
     stream = antlr4.CommonTokenStream(lexer)
     parser = exprParser(stream)
     tree = parser.expr()
-    visitor = ExprEvalVisitor(array)
+    visitor = ExprEvalVisitor()
     return visitor.visit(tree)
 
 def main():
