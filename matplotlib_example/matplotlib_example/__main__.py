@@ -1,24 +1,25 @@
 import sys
 import math
 import traceback
-
-import matplotlib_example.design as design
-import matplotlib_example.testmodal as testmodal
+import operator
 
 import numpy as np
 
-from PyQt5 import QtCore, QtWidgets as QtGui
+from PyQt5 import QtWidgets as QtGui
 
 import matplotlib
-matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 import antlr4
 
+import matplotlib_example.design as design
+import matplotlib_example.testmodal as testmodal
 from matplotlib_example.exprLexer import exprLexer
 from matplotlib_example.exprParser import exprParser
 from matplotlib_example.exprVisitor import exprVisitor
+
+matplotlib.use('Qt5Agg')
 
 FUNCS = {
     'sin': np.sin,
@@ -63,33 +64,25 @@ class ExprEvalVisitor(exprVisitor):
     def __init__(self):
         super(ExprEvalVisitor, self).__init__()
 
+    def _visit_op(self, ctx, operation):
+        func1 = self.visit(ctx.expr()[0])
+        func2 = self.visit(ctx.expr()[1])
+        return lambda x: operation(func1(x), func2(x))
+
     def visitSub(self, ctx):
-        func = self.visit(ctx.expr())
-        return lambda x: func(x)
+        return self.visit(ctx.expr())
 
     def visitMuldiv(self, ctx):
-        func1 = self.visit(ctx.expr()[0])
-        func2 = self.visit(ctx.expr()[1])
-        if ctx.MUL:
-            return lambda x: func1(x) * func2(x)
-        return lambda x: func1(x) / func2(x)
+        return self._visit_op(ctx, operator.mul if ctx.MUL else operator.truediv)
 
     def visitAddsub(self, ctx):
-        func1 = self.visit(ctx.expr()[0])
-        func2 = self.visit(ctx.expr()[1])
-        if ctx.ADD:
-            return lambda x: func1(x) + func2(x)
-        return lambda x: func1(x) - func2(x)
+        return self._visit_op(ctx, operator.add if ctx.ADD else operator.sub)
 
     def visitExpo(self, ctx):
-        func1 = self.visit(ctx.expr()[0])
-        func2 = self.visit(ctx.expr()[1])
-        return lambda x: func1(x) ** func2(x)
+        return self._visit_op(ctx, operator.pow)
 
     def visitMod(self, ctx):
-        func1 = self.visit(ctx.expr()[0])
-        func2 = self.visit(ctx.expr()[1])
-        return lambda x: func1(x) % func2(x)
+        return self._visit_op(ctx, operator.mod)
 
     def visitNegate(self, ctx):
         func = self.visit(ctx.expr())
@@ -120,7 +113,7 @@ class ExampleApp(QtGui.QMainWindow, design.Ui_MainWindow):
         super(self.__class__, self).__init__()
         self.setupUi(self)
         self.setWindowTitle('Matplotlib Graph Example')
-        self.figure = Figure(figsize=(320,240), dpi=72, facecolor=(1,1,1), edgecolor=(0,0,0))
+        self.figure = Figure(figsize=(320, 240), dpi=72, facecolor=(1, 1, 1), edgecolor=(0, 0, 0))
         self.axes = self.figure.add_subplot(111)
         self.canvas = FigureCanvas(self.figure)
         self.plothl.addWidget(self.canvas)
