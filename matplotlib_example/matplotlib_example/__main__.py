@@ -4,7 +4,9 @@ import traceback
 import operator
 
 import numpy as np
-
+import sympy
+import mpmath
+from sympy.abc import x as sympyx
 from PyQt5 import QtWidgets as QtGui
 
 import matplotlib
@@ -22,42 +24,34 @@ from matplotlib_example.exprVisitor import exprVisitor
 matplotlib.use('Qt5Agg')
 
 FUNCS = {
-    'sin': np.sin,
-    'cos': np.cos,
-    'tan': np.tan,
-    'arcsin': np.arcsin,
-    'arccos': np.arccos,
-    'arctan': np.arctan,
-    'arctan2': np.arctan2,
-    'asin': np.arcsin,
-    'acos': np.arccos,
-    'atan': np.arctan,
-    'atan2': np.arctan2,
-    'degrees': np.degrees,
-    'radians': np.radians,
-    'sinh': np.sinh,
-    'cosh': np.cosh,
-    'tanh': np.tanh,
-    'arcsinh': np.arcsinh,
-    'arccosh': np.arccosh,
-    'arctanh': np.arctanh,
-    'asinh': np.arcsinh,
-    'acosh': np.arccosh,
-    'atanh': np.arctanh,
-    'round': np.round_,
-    'floor': np.floor,
-    'ceil': np.ceil,
-    'exp': np.exp,
-    'expm1': np.expm1,
-    'exp2': np.exp2,
-    'log': np.log,
-    'log10': np.log10,
-    'log2': np.log2,
-    'log1p': np.log1p,
-    'sqrt': np.sqrt,
-    'abs': np.absolute,
-    'sign': np.sign,
-    'cumsum': np.cumsum
+    'sin': sympy.sin,
+    'cos': sympy.cos,
+    'tan': sympy.tan,
+    'arcsin': sympy.asin,
+    'arccos': sympy.acos,
+    'arctan': sympy.atan,
+    'arctan2': sympy.atan2,
+    'arcsin': sympy.asin,
+    'arccos': sympy.acos,
+    'arctan': sympy.atan,
+    'arctan2': sympy.atan2,
+    'degrees': mpmath.degrees,
+    'radians': mpmath.radians,
+    'sinh': sympy.sinh,
+    'cosh': sympy.cosh,
+    'tanh': sympy.tanh,
+    'arcsinh': sympy.asinh,
+    'arccosh': sympy.acosh,
+    'arctanh': sympy.atanh,
+    'arcsinh': sympy.asinh,
+    'arccosh': sympy.acosh,
+    'arctanh': sympy.atanh,
+    'exp': sympy.exp,
+    'log': sympy.log,
+    'sqrt': sympy.sqrt,
+    'abs': sympy.Abs,
+    'sign': sympy.sign,
+    'deriv': sympy.diff,
     }
 
 class ExprEvalVisitor(exprVisitor):
@@ -67,7 +61,7 @@ class ExprEvalVisitor(exprVisitor):
     def _visit_op(self, ctx, operation):
         func1 = self.visit(ctx.expr()[0])
         func2 = self.visit(ctx.expr()[1])
-        return lambda x: operation(func1(x), func2(x))
+        return operation(func1, func2)
 
     def visitSub(self, ctx):
         return self.visit(ctx.expr())
@@ -85,26 +79,24 @@ class ExprEvalVisitor(exprVisitor):
         return self._visit_op(ctx, operator.mod)
 
     def visitNegate(self, ctx):
-        func = self.visit(ctx.expr())
-        return lambda x: -func(x)
+        return -self.visit(ctx.expr())
 
     def visitFunc(self, ctx):
         funcname = ctx.ID().getText()
         if funcname not in FUNCS:
             raise NameError('{} is not a valid function name'.format(repr(funcname)))
         args = [self.visit(expr) for expr in ctx.expr()]
-        return lambda x: FUNCS[funcname](*[f(x) for f in args])
+        return FUNCS[funcname](*args)
 
     def visitNum(self, ctx):
-        constant = float(ctx.NUM().getText())
-        return lambda x: constant
+        return sympy.numbers.sympify(ctx.NUM().getText())
 
     def visitId(self, ctx):
         name = ctx.ID().getText()
         if name == 'x':
-            return lambda x: x
+            return sympyx
         elif name == 'pi':
-            return lambda x: math.pi
+            return sympy.pi
         else:
             raise ValueError('only variable allowed is \'x\' or \'pi\'')
 
@@ -126,13 +118,16 @@ class ExampleApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
     def InputChanged(self):
         try:
-            function = process_expr(self.InputBox.text())
+            symfunc = process_expr(self.InputBox.text())
+            function = sympy.lambdify(sympyx, symfunc, 'numpy')
             mnx = float(self.XMin.text())
             mxx = float(self.XMax.text())
             if mnx == mxx:
                 mnx -= 0.5
                 mxx += 0.5
             x = np.linspace(mnx, mxx, int(self.Points.text()))
+            y = function(x)
+            x = x[~np.isnan(y)]
             y = function(x)
             self.axes.clear()
             self.axes.plot(x, y)
@@ -141,6 +136,7 @@ class ExampleApp(QtGui.QMainWindow, design.Ui_MainWindow):
                 self.axes.set_ylim((min(y)-0.5, max(y)+0.5))
             else:
                 self.axes.set_ylim((min(y), max(y)))
+            self.axes.set_title('${}$'.format(sympy.latex(symfunc)), usetex=True, fontsize=20)
             self.canvas.draw()
         except:
             traceback.print_exc()
