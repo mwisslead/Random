@@ -86,7 +86,21 @@ def under_1000(num):
     return (NUMWORDS[n1] + ' hundred' if n1 else '') + ((' ' + under_100(n2)) if n2 else '')
     
 def main():
-    print(split_num(int(sys.argv[1])))
+    c = sys.argv[1].split('.')
+    if len(c) > 2:
+        raise ValueError('Invalid Number')
+    integer = int(c[0])
+    words_num = split_num(integer)
+    if len(c) > 1 and c[1] and int(c[1]) > 0:
+        mantissa = c[1]
+        words_mnt = split_num(int(mantissa))
+        words_frac = split_num(int('1' + '0' * len(mantissa)))
+        if words_frac.startswith('one'):
+            words_frac = words_frac[4:]
+        words_num += ' and ' + words_mnt + ' ' + words_frac + 'th'
+        if int(mantissa) != 1:
+            words_num += 's'
+    print(words_num)
 
 if __name__ == '__main__':
     main()
