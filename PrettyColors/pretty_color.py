@@ -36,14 +36,22 @@ def pretty_color(integer, saturation=0.9, value=0.9):
     hsv = np.float32([[[hue, saturation, value]]])
     return lrgb2srgb(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
 
+def get_hue(rgb_color):
+    '''get hsv hue from an srgb color'''
+    return cv2.cvtColor(rgb_color.astype('float32'), cv2.COLOR_RGB2HSV)[0][0][0]
+
+def pretty_colors(integer, saturation=0.9, value=0.9):
+    '''create a sorted list of colors containing \'integer\' elements'''
+    return sorted([pretty_color(i, saturation, value) for i in range(integer)], key=get_hue)
+
 def main(args=None):
     '''main function to run if ran as main'''
     if args is None:
         args = parse_args()
 
-    colors = 25
+    colors = 24
     factor = next(i for i in range(int(math.sqrt(colors)), 0, -1) if colors % i is 0)
-    img = np.reshape([pretty_color(i) for i in range(colors)], (factor, colors//factor, 3))
+    img = np.reshape(pretty_colors(colors), (factor, colors//factor, 3))
 
     plt.imshow(img, interpolation='none')
     plt.show()
