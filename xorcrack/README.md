@@ -1,7 +1,7 @@
-## xorcrack
+# xorcrack
 Use shift analysis and statistics to automatically decrypt xor ciphers.
 
-#Run with help flag for explanation of inputs:
+##Run with help flag for explanation of inputs:
 ```
 $ python xorcrack.py --help
 usage: xorcrack.py [-h] key_min key_max common msg
@@ -19,7 +19,7 @@ optional arguments:
 
 ```
 
-#Running on example message:
+##Running on example message:
 Specify that the key is between 2 and 20 characters and 'space' is the most common character
 ```
 $ python xorcrack.py 2 20 " " example_message.dat
