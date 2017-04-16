@@ -1,8 +1,9 @@
 '''convert between string of bytes with 256 possible values and n possible values'''
-
 from __future__ import print_function
 
+
 STANDARD_CHARS = b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
 
 def base_n_convert(int_list, base, new_base):
     '''convert list of ints from base to new_base'''
@@ -25,17 +26,18 @@ def base_n_convert(int_list, base, new_base):
         int_list[0] //= new_base
     return output
 
+
 def base_n_encode(bytestr, encode_chars=STANDARD_CHARS):
     '''convert bytestr to str only containing encode_chars'''
-    if isinstance(bytestr, str):
-        bytestr = [ord(c) for c in bytestr]
-    int_list = base_n_convert(list(bytestr), 256, len(encode_chars))
+    int_list = base_n_convert(list(bytearray(bytestr)), 256, len(encode_chars))
     return bytes(bytearray(encode_chars[x] for x in int_list))
+
 
 def base_n_decode(bytestr, encode_chars=STANDARD_CHARS):
     '''convert bytestr only containing encode_chars to 256 values'''
     int_list = [encode_chars.index(c) for c in bytestr]
     return bytes(bytearray(base_n_convert(int_list, len(encode_chars), 256)))
+
 
 def main():
     '''test cases'''
@@ -51,6 +53,7 @@ def main():
     teststr = b'atebytes'
     encode_chars = b'0'
     print(base_n_encode(teststr, encode_chars))
+
 
 if __name__ == '__main__':
     main()
