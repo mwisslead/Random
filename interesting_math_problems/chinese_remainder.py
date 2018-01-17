@@ -1,5 +1,5 @@
 '''Calculate the small nonnegativenumber with specified remainders'''
-from __future__ import division
+from __future__ import division, print_function
 
 import argparse
 
@@ -38,30 +38,28 @@ def inverse(a, n):
         r, next_r = next_r, r - quotient * next_r
     if r > 1:
         raise ValueError("No inverse")
-    if t < 0:
-        t = t + n
-    return t
+    return t % n
 
-def mutuallyprime(*kwargs):
+def mutuallyprime(*args):
     '''Determine if list of numbers is mutually prime'''
-    if len(kwargs) == 1:
-        kwargs = kwargs[0]
-    for i, num1 in enumerate(kwargs):
-        for j, num2 in enumerate(kwargs):
+    if len(args) == 1:
+        args = args[0]
+    for i, num1 in enumerate(args):
+        for j, num2 in enumerate(args):
             if i != j and gcd(num1, num2) != 1:
                 return False
     return True
 
-def solver(*kwargs):
-    '''solve system of congruences defined by kwargs'''
-    if len(kwargs) == 1:
-        kwargs = kwargs[0]
-    moduli = [k[1] for k in kwargs]
+def solver(*args):
+    '''solve system of congruences defined by args'''
+    if len(args) == 1:
+        args = args[0]
+    moduli = [k[1] for k in args]
     if len(moduli) == 0 or not mutuallyprime(moduli):
         raise ValueError('not mutually prime')
-    remainder = kwargs[0][0]
-    modulo = kwargs[0][1]
-    for next_remainder, next_modulo in kwargs[1:]:
+    remainder = args[0][0]
+    modulo = args[0][1]
+    for next_remainder, next_modulo in args[1:]:
         inv = inverse(modulo, next_modulo)
         i = (next_remainder - remainder) * inv
         i *= modulo
@@ -71,14 +69,15 @@ def solver(*kwargs):
     return remainder
 
 def general_formula(moduli):
-    s = 96
+    '''calculate general formula for solution to congruence equations'''
+    s = ord('a')
     output = ''
     final = 1
     for i, _ in enumerate(moduli):
         congruences = [(int(j == i), mod) for j, mod in enumerate(moduli)]
-        s += 1
         output += '{} * {} + '.format(solver(congruences), chr(s))
         final *= congruences[i][1]
+        s += 1
     return '({}) % {}'.format(output[:-3], final)
 
 def main(argv=None):
